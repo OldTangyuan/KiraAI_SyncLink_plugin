@@ -1,4 +1,4 @@
-from core.plugin import BasePlugin, PluginContext, logger
+from core.plugin import BasePlugin, PluginContext, get_logger
 from core.plugin import on, Priority
 from core.plugin import register
 from core.chat import KiraMessageEvent, MessageChain, KiraMessageBatchEvent
@@ -19,7 +19,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from PIL import Image as pilimage
 import numpy as np
-
+logger = get_logger('plugin-SyncLink', 'orange')
 def kira_rand_mac():
     """这里的MAC地址并不标准，但作为Kira唯一标识符也够用了"""
     return 'kira:%s' % ':'.join('%02x' % random.randint(0, 255) for _ in range(6))
@@ -281,6 +281,7 @@ class SyncLink(BasePlugin):
             self.kira_mac = kira_mac
         else:
             self.kira_mac = json.loads(self.data_file.read_text()).get('KiraMac')
+        logger.info('SyncLink插件加载完成！')
 
     async def terminate(self):
         """插件卸载时调用，在此释放资源、取消任务等"""
@@ -308,6 +309,7 @@ class SyncLink(BasePlugin):
         try:
             await self.reset_link()
             await self.send_notice(self.session_id, '[System: 连接超时，你被系统强制取消并重置（你不需要自己再取消一次）]')
+            logger.warning('连接超时，自动中断')
         except asyncio.CancelledError:
             return
         except Exception as e:
@@ -315,6 +317,7 @@ class SyncLink(BasePlugin):
 
     async def reset_link(self):
         """重置连接"""
+        await self.cancel_task()
         self.try_to_connect = False
         self.back_to_connect = False
         self.connecting = False
@@ -323,6 +326,7 @@ class SyncLink(BasePlugin):
         self.fake_kira_mac = None
         self.plaintext_kira_mac = None
         self.real_target_kira_mac = None
+        logger.info('连接已重置')
 
     async def cache_kira_mac(self, kira_mac, nickname, qq_id):
         """缓存连接到的KiraMac"""
@@ -395,9 +399,9 @@ class SyncLink(BasePlugin):
         if (target_kira_mac:= re.match(r'^<CNCT>(.*)</CNCT>$', text.strip())) and not self.connecting and not self.try_to_connect:
             target_kira_mac = target_kira_mac.group(1)
             self.plaintext_kira_mac = self.encryptor.decrypt_mac(target_kira_mac)
-        elif (real_target_kira_mac:= re.match(r'^<BCNCT>(.*)</BCNCT>$', text.strip())) and not self.connecting and self.try_to_connect:
-            real_target_kira_mac = real_target_kira_mac.group(1)
-            self.real_target_kira_mac = self.encryptor.decrypt_string(real_target_kira_mac, self.fake_kira_mac)
+        elif (receive_real_target_kira_mac:= re.match(r'^<BCNCT>(.*)</BCNCT>$', text.strip())) and not self.connecting and self.try_to_connect:
+            receive_real_target_kira_mac = receive_real_target_kira_mac.group(1)
+            self.real_target_kira_mac = self.encryptor.decrypt_string(receive_real_target_kira_mac, self.fake_kira_mac)
         elif (real_target_kira_mac:= re.match(r'^<FCNCT>(.*)</FCNCT>$', text.strip())) and not self.connecting and self.back_to_connect:
             real_target_kira_mac = real_target_kira_mac.group(1)
             self.real_target_kira_mac = self.encryptor.decrypt_string(real_target_kira_mac, self.kira_mac)
@@ -413,7 +417,7 @@ class SyncLink(BasePlugin):
             session_id = event.session.__str__()
             sender_name = event.message.sender.nickname
             await self.send_notice(session_id, f'[System: “{sender_name}”发起了连接请求，如果同意连接请使用<back_connect>Tag]')
-        elif self.real_target_kira_mac and "kira:" in self.real_target_kira_mac and real_target_kira_mac:
+        elif self.real_target_kira_mac and "kira:" in self.real_target_kira_mac and receive_real_target_kira_mac:
             await self.cancel_task()
             self.try_to_connect = False
             self.connecting = True
@@ -448,6 +452,7 @@ class SyncLink(BasePlugin):
             fake_kira_mac = self.encryptor.encrypt_mac(self.fake_kira_mac)
             self.try_to_connect = True
             await self.start_task(300)
+            logger.info(f'正在与{q_id}进行连接...')
 
             return [At(q_id), Text(f'<CNCT>{fake_kira_mac}</CNCT>')]
         else:
@@ -461,6 +466,7 @@ class SyncLink(BasePlugin):
             self.back_to_connect = True
             ciphertext_kira_mac = self.encryptor.encrypt_string(self.kira_mac, self.plaintext_kira_mac)
             await self.start_task(300)
+            logger.info('正在接受对方的连接邀请...')
 
             return [Text(f'<BCNCT>{ciphertext_kira_mac}</BCNCT>')]
         else:
@@ -472,6 +478,7 @@ class SyncLink(BasePlugin):
         # 返回 list[BaseMessageElement]
         if self.connecting and self.real_target_kira_mac:
             self.imgencryptor.encrypt_text_to_image(f'kira:{value}', self.imgencryptor.str_to_key(self.real_target_kira_mac), self.image_file)
+            logger.info(f'发送了密文：{value}')
 
             return [Text('<SYNC>'), Image(image=self.image_file), Text('</SYNC>')]
         else:
