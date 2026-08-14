@@ -15,10 +15,10 @@ import asyncio
 import json
 from pathlib import Path
 
-from synclink import constants as C
-from synclink.crypto import KeyCipher, PasswordCipher
-from synclink.image_codec import ImageCodec
-from synclink.mac import MacObfuscator, kira_rand_mac
+from .synclink import constants as C
+from .synclink.crypto import KeyCipher, PasswordCipher
+from .synclink.image_codec import ImageCodec
+from .synclink.mac import MacObfuscator, kira_rand_mac
 
 logger = get_logger('plugin-SyncLink', 'orange')
 
