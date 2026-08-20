@@ -1,6 +1,6 @@
 {
     "display_name": "同步连接",
-    "plugin_id": "SyncLink",
+    "plugin_id": "Kira-AI-SyncLink",
     "version": "1.1",
     "core_version": ">=1.0.0",
     "author": "Old_tangyuan",
