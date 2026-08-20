@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="64" height="64">
+  <defs>
+    <!-- 定义科技感蓝紫渐变 -->
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 连接线与节点分组 -->
+  <g fill="none" stroke="url(#iconGrad)" stroke-linecap="round" stroke-linejoin="round">
+    
+    <!-- 1. 最外层六边形轮廓 -->
+    <polygon points="85,50 67.5,80.3 32.5,80.3 15,50 32.5,19.7 67.5,19.7" stroke-width="4" />
+    
+    <!-- 2. 内部虚线六边形（增强科技网络感） -->
+    <polygon points="72,50 61,69.1 39,69.1 28,50 39,30.9 61,30.9" stroke-width="2" stroke-dasharray="4 4" />
+    
+    <!-- 3. 中心向外的辐射连接线 -->
+    <g stroke-width="3">
+      <line x1="50" y1="50" x2="85" y2="50" />
+      <line x1="50" y1="50" x2="67.5" y2="80.3" />
+      <line x1="50" y1="50" x2="32.5" y2="80.3" />
+      <line x1="50" y1="50" x2="15" y2="50" />
+      <line x1="50" y1="50" x2="32.5" y2="19.7" />
+      <line x1="50" y1="50" x2="67.5" y2="19.7" />
+    </g>
+  </g>
+
+  <!-- 4. 外围节点（空心圆点） -->
+  <g fill="none" stroke="url(#iconGrad)" stroke-width="4">
+    <circle cx="85" cy="50" r="5" />
+    <circle cx="67.5" cy="80.3" r="5" />
+    <circle cx="32.5" cy="80.3" r="5" />
+    <circle cx="15" cy="50" r="5" />
+    <circle cx="32.5" cy="19.7" r="5" />
+    <circle cx="67.5" cy="19.7" r="5" />
+  </g>
+
+  <!-- 5. 中央核心节点（实心渐变圆点） -->
+  <circle cx="50" cy="50" r="8" fill="url(#iconGrad)" stroke="none" />
+</svg>
