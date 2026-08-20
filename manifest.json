@@ -1,7 +1,7 @@
 {
     "display_name": "同步连接",
     "plugin_id": "SyncLink",
-    "version": "1.0",
+    "version": "1.1",
     "core_version": ">=1.0.0",
     "author": "Old_tangyuan",
     "description": "这是一个可以让你的AI于其他包含这个插件的AI连接的插件，连接后两个AI可以进行加密通信，没什么用，但是很酷。",
